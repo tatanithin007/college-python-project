@@ -10,7 +10,7 @@ def send_email(data):
         message = MIMEMultipart()
         message['Subject'] = 'Price drop alert from python script.'
         mail_content=f'''
-Hello, {data["website"]} product, named {data["productname"]} is available at price {data["price"]}
+Hello, {data["website"]} product, named {data["productname"]} is available at price {data["price"]} and availability is {data["status"]}
 To buy, please click below link
 {data["url"]}
 For more details, please see the attached screenshot
@@ -20,7 +20,7 @@ For more details, please see the attached screenshot
 
 
         message.attach(MIMEText(mail_content, 'plain'))
-        attach_file_name = 'hello.png'
+        attach_file_name = 'driver.png'
         attach_file = open(attach_file_name, 'rb') # Open the file as binary mode
         payload = MIMEBase('application', 'octate-stream')
         payload.set_payload((attach_file).read())

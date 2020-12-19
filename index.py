@@ -52,6 +52,7 @@ def mi():
     dataassign("website","MI")
     driver.get(url)
     pricenow=WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.XPATH,'//div[@class="information-section__product-price"]'))).text.split('\n')[0].replace(",","")
+    time.sleep(5)
     dataassign("status","out of stock") if 'Notify Me' in driver.page_source else dataassign("status","in stock")
     dataassign("price",pricenow)
     dataassign("productname",driver.find_element_by_xpath('//h1[@class="information-section__product-title"]/span').text)
@@ -75,7 +76,9 @@ def amazon():
         print("URL belongs to amazon website")
         dataassign("website","amazon")
         driver.get(url)
-        nowprice=int(driver.find_element_by_xpath('//span[@id="priceblock_ourprice" or @id="priceblock_dealprice" ]').text.replace(",","").replace('₹',"").strip().split(".")[0])
+        nowprice=(driver.find_element_by_xpath('//span[@id="priceblock_ourprice" or @id="priceblock_dealprice" ]').text.replace(",","").replace('₹',"").strip().split(".")[0])
+        nowprice = re.findall(r'\d+', nowprice)
+        nowprice=int(nowprice[0])
         dataassign("price",nowprice)
         dataassign("productname",driver.find_element_by_xpath('//span[@id="productTitle"]').text)
         dataassign("status","out of stock") if 'buy now' in driver.page_source else dataassign("status","in stock")
@@ -88,7 +91,9 @@ def oneplus():
     print("URL belongs to oneplus website")
     dataassign("website","oneplus")
     driver.get(url)
-    pricenow=int(driver.find_element_by_xpath('//a[contains(text(),"Price Details")]/preceding-sibling::span').text.replace("₹",""))
+    name=WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.XPATH,'//div[@class="font-headline-2"]'))).text
+    dataassign("productname",name)
+    pricenow=int(driver.find_element_by_xpath('//a[contains(text(),"Price Details")]/preceding-sibling::span').text.replace("₹","").replace(',',''))
     dataassign("status","out of stock") if 'Out of stock' in driver.page_source else dataassign("status","in stock")
     dataassign("price",pricenow)
 
@@ -98,17 +103,23 @@ def checkprice(interval):
         Function to check product price in recursive mode, 
         interval: intiger value in minutes for sleep time
     '''
-    print(f"Thanks, We will check product price again in {interval} minutes at {time.ctime(time.time()+interval*60)}")
+    #print(f"Thanks, We will check product price again in {interval} minutes at {time.ctime(time.time()+interval*60)}")
     time.sleep(interval*60)
+    #print(data)
     globals()[r[0]]()
     data["price"]=data["price"].replace("₹","").replace(',',"")
     driver.save_screenshot("driver.png")
-    send_email(data)
+    #print("data:",data)
+    try:
+        int(data["price"])
+    except:
+        print(f"failed to extract price from {globals()[r[0]]} website, will try in next run")
     if int(data["price"]) > int(data["expectedPrice"]):
-        print(f'{clr.FAIL}Sorry your {data["website"]} product, named {data["productname"]} is priced at {clr.ENDC}{clr.BOLD}{data["price"]}{clr.ENDC}{clr.FAIL}, do you want to have an alert when price got doropped?{clr.ENDC}')  
+        print(f'{clr.OKCYAN}Sorry your {data["website"]} product, named {data["productname"]} is priced at {clr.ENDC}{clr.BOLD}{data["price"]}{clr.ENDC}{clr.OKCYAN}, We will check product price again in {interval} minutes at {time.ctime(time.time()+interval*60)}{clr.ENDC}')  
         checkprice(interval)
     else:
-        print("send email")
+        print("Sending email, please wait")
+        send_email(data)
 
 
 
@@ -122,11 +133,11 @@ driver = webdriver.Chrome(ChromeDriverManager().install(),options=options)
 try:
     acceptedstores=["amazon","flipkart","mi","oneplus"]
     #Taking user inputs
-    print(f"Please enter product URL from online stores {','.join(acceptedstores)} :",end=" ")
+    print(f"{clr.OKGREEN}Please enter product URL from online stores {','.join(acceptedstores)} :{clr.ENDC}",end=" ")
     url=input()
     dataassign("url",url)
 
-    print(f"Please enter your email id for alerts")
+    print(f"{clr.OKGREEN}Please enter your email id for alerts:{clr.ENDC}", end=" ")
     regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$' #to verify input email id is valid or not
     receiver_mail=input()
     if(re.search(regex,receiver_mail)):  
@@ -137,7 +148,7 @@ try:
         sys.exit()
 
 
-    print(f"Please enter expected price:",end=" ") #input expected price from user
+    print(f"{clr.OKGREEN}Please enter expected price:{clr.ENDC}",end=" ") #input expected price from user
     dataassign("expectedPrice",input())
     r=[(i) for i in url.split('.') if i in acceptedstores]
 
@@ -145,18 +156,19 @@ try:
     print(f"Store not available. Please select from available store {','.join(acceptedstores)}") if len(r)==0 else globals()[r[0]]()
 
     #remving special characters from price for converting to integer
-    data["price"]=str(data["price"]).replace('₹','')
+    data["price"]=str(data["price"]).replace('₹','').replace(",","")
 
     #comparing live product price with expected product price
     if int(data["price"]) > int(data["expectedPrice"]):
-        print(f'{clr.FAIL}Sorry your {data["website"]} product, named {data["productname"]} is priced at {clr.ENDC}{clr.BOLD}{data["price"]}{clr.ENDC}{clr.FAIL}, do you want to have an alert when price got doropped?{clr.ENDC}')  
-        print("if YES type 1:")
+        print(f'{clr.OKBLUE}Sorry your {data["website"]} product, named {data["productname"]} is priced at {clr.ENDC}{clr.BOLD}{data["price"]}{clr.ENDC}{clr.FAIL}, do you want to have an alert when price got doropped?{clr.ENDC}')  
+        print(f"{clr.OKGREEN}if YES type 1:{clr.ENDC}",end=" ")
         var=input()
         #Requesting user for alert
         if var=='1': 
-            print("Setting alert")
-            print("Please enter time interval in minutes to check price:", end=" ")
+            print(f"Setting alert")
+            print(f"{clr.OKGREEN}Please enter time interval in minutes to check price:{clr.ENDC}", end=" ")
             interval=int(input())
+            print(f"Setting up alert...., first check will be at {time.ctime(time.time()+interval*60)}")
             checkprice(interval)
         else:
             print("Thanks for using our script. See you soon")
