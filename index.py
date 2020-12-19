@@ -7,7 +7,10 @@ https://www.amazon.in/OnePlus-Mirror-Black-128GB-Storage/dp/B085J1CPD1/ref=sr_1_
 '''
 import os
 import time
+import re
+import sys
 os.environ['WDM_LOG_LEVEL'] = '0'
+
 try:
     from selenium import webdriver
     from webdriver_manager.chrome import ChromeDriverManager
@@ -17,6 +20,7 @@ try:
 except:
     os.system("python -m pip install selenium")
     os.system("python -m pip install webdriver_manager")
+from senemail import send_email
 
 class clr:
     HEADER = '\033[95m'
@@ -73,20 +77,34 @@ def checkprice(interval):
     print(f"Thanks, We will check product price again in {interval} minutes at {time.ctime(time.time()+interval*60)}")
     time.sleep(interval*60)
     globals()[r[0]]()
+    data["price"]=data["price"].replace("₹","").replace(',',"")
+    driver.save_screenshot("driver.png")
+    send_email(data)
     if int(data["price"]) > int(data["expectedPrice"]):
         print(f'{clr.FAIL}Sorry your {data["website"]} product, named {data["productname"]} is priced at {clr.ENDC}{clr.BOLD}{data["price"]}{clr.ENDC}{clr.FAIL}, do you want to have an alert when price got doropped?{clr.ENDC}')  
-    else:
         checkprice(interval)
+    else:
+        print("send email")
 
 
 options = webdriver.ChromeOptions()
 options.add_argument("--headless")
 options.add_argument("--log-level=3")
+options.add_argument("--window-size=1420,1080")
 driver = webdriver.Chrome(ChromeDriverManager().install(),options=options)
 acceptedstores=["amazon","flipkart","mi","oneplus"]
 print(f"Please enter product URL from online stores {','.join(acceptedstores)} :",end=" ")
 url=input()
 dataassign("url",url)
+print(f"Please enter your email id for alerts")
+regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+receiver_mail=input()
+if(re.search(regex,receiver_mail)):  
+    print("Valid Email")  
+    dataassign("receiver_mail",receiver_mail)
+else:  
+    print("Invalid Email, please restart program and enter valid email address")
+    sys.exit()
 print(f"Please enter expected price:",end=" ")
 dataassign("expectedPrice",input())
 r=[(i) for i in url.split('.') if i in acceptedstores]
@@ -104,4 +122,6 @@ if int(data["price"]) > int(data["expectedPrice"]):
     else:
         print("Thanks")
 else:
-    print("in price limit")
+    print("Please wait, Sending email....")
+    send_email(data)
+    print(f'{clr.FAIL}Hola.. selected {data["website"]} product, named {data["productname"]} is available at price {clr.ENDC}{clr.BOLD}{data["price"]}{clr.ENDC}{clr.FAIL}.{clr.ENDC}')  
