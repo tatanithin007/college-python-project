@@ -2,13 +2,20 @@
 
 
 Step1:
+
     Please install requirements.txt using
         pip install -r requirements.txt
+        
+        
 Step2:
     Chrome browser should be installed on your machine
+    
+    
 Step3:
     run index.py
+    
         python index.py
+        
     Enter any product url from flipkart or amazon, MI, oneplus.
     Here are few example URLS.
     For Flipkart:
@@ -19,5 +26,7 @@ Step3:
         https://www.mi.com/in/buy/product/redmi-k20?gid=4192200005
     For Oneplus:
         https://www.oneplus.in/oneplus-nord?from=nord
+        
+        
 Step 4:
     Follow the instruction given by the program
