@@ -152,8 +152,12 @@ try:
     dataassign("expectedPrice",input())
     r=[(i) for i in url.split('.') if i in acceptedstores]
 
-    #take url, check url belongs to which website and call respective function in single line
-    print(f"Store not available. Please select from available store {','.join(acceptedstores)}") if len(r)==0 else globals()[r[0]]()
+    #take url, check url belongs to which website and call respective function 
+    if len(r)==0:
+         print(f"Store not available. Please select from available store {','.join(acceptedstores)}")
+         sys.exit()
+    else:
+        globals()[r[0]]()
 
     #remving special characters from price for converting to integer
     data["price"]=str(data["price"]).replace('₹','').replace(",","")
