@@ -14,7 +14,6 @@ import os
 import time
 import re
 import sys
-os.environ['WDM_LOG_LEVEL'] = '0'
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.wait import WebDriverWait
@@ -22,6 +21,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from senemail import send_email
 
+os.environ['WDM_LOG_LEVEL'] = '0'
 #Class used to print colured lineso on terminal
 class clr:
     HEADER = '\033[95m'
@@ -160,7 +160,7 @@ try:
 
     #comparing live product price with expected product price
     if int(data["price"]) > int(data["expectedPrice"]):
-        print(f'{clr.OKBLUE}Sorry your {data["website"]} product, named {data["productname"]} is priced at {clr.ENDC}{clr.BOLD}{data["price"]}{clr.ENDC}{clr.FAIL}, do you want to have an alert when price got doropped?{clr.ENDC}')  
+        print(f'{clr.OKBLUE}Sorry your {clr.ENDC}{clr.OKGREEN}{data["website"]}{clr.ENDC}{clr.OKBLUE} product, named {clr.ENDC}{clr.OKGREEN}{data["productname"]}{clr.ENDC}{clr.OKGREEN} is priced at {clr.ENDC}{clr.BOLD}{data["price"]}{clr.ENDC}{clr.OKBLUE}, do you want to have an alert when price got doropped?{clr.ENDC}')  
         print(f"{clr.OKGREEN}if YES type 1:{clr.ENDC}",end=" ")
         var=input()
         #Requesting user for alert
